@@ -12,12 +12,12 @@ const games = {};
 const rnd = () => Math.random().toString(36).slice(2, 12);
 const newPin = () => { let p; do p = String(100000 + Math.floor(Math.random() * 900000)); while (games[p]); return p; };
 const ranked = g => [...g.players.values()].sort((a, b) => b.score - a.score)
-  .map((p, i) => ({ id: p.id, name: p.name, score: p.score, rank: i + 1 }));
+  .map((p, i) => ({ id: p.id, name: p.name, av: p.av, score: p.score, rank: i + 1 }));
 
 function view(g, role, pid) {
   const n = g.quiz.questions.length, q = g.quiz.questions[g.q];
   const v = { pin: g.pin, phase: g.phase, title: g.quiz.title, q: g.q, total: n, count: g.players.size };
-  if (role !== 'player') v.players = [...g.players.values()].map(p => p.name);
+  if (role !== 'player') v.players = [...g.players.values()].map(p => ({ name: p.name, av: p.av }));
   if (q && (g.phase === 'question' || g.phase === 'reveal')) {
     v.options = q.options.length; v.answered = g.answers.size;
     if (role !== 'player') { v.text = q.text; v.labels = q.options; }
@@ -100,9 +100,9 @@ io.on('connection', s => {
       if (g.phase !== 'lobby') return ack({ err: 'This game has already started.' });
       if (!name) return ack({ err: 'Enter a nickname.' });
       if ([...g.players.values()].some(x => x.name.toLowerCase() === name.toLowerCase())) return ack({ err: 'That nickname is taken.' });
-      p = { id: rnd(), name, score: 0, streak: 0, last: null }; g.players.set(p.id, p);
+      p = { id: rnd(), name, av: Math.min(7, Math.max(0, d.av | 0)), score: 0, streak: 0, last: null }; g.players.set(p.id, p);
     }
-    p.sid = s.id; s.data = { pin: g.pin, role: 'p', id: p.id }; ack({ id: p.id, name: p.name }); push(g);
+    p.sid = s.id; s.data = { pin: g.pin, role: 'p', id: p.id }; ack({ id: p.id, name: p.name, av: p.av }); push(g);
   });
   s.on('player:answer', c => {
     const g = G(); if (!g || s.data.role !== 'p' || g.phase !== 'question') return;
