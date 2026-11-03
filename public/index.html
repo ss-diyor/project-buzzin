@@ -5,21 +5,24 @@
 const s=io(),A=document.getElementById('app');
 let me=JSON.parse(localStorage.getItem('buzzin.me')||'null');
 const qp=new URLSearchParams(location.search).get('pin')||'';
-function form(pin='',name='',err=''){A.innerHTML=`<div class="wrap stack"><div class="logo">buzzin<i></i></div><div class="card stack"><label class="mut" for="p">Game PIN</label><input id="p" class="pinin" inputmode="numeric" maxlength="6" value="${esc(pin)}" placeholder="000000"><label class="mut" for="n">Nickname</label><input id="n" maxlength="16" value="${esc(name)}" placeholder="What should we call you?"><p class="err" role="alert">${esc(err)}</p><button id="go">Join game</button></div><p class="mut" style="text-align:center">Questions appear on the main screen. Pick your answer here.</p></div>`;
- document.getElementById('go').onclick=()=>join(p.value.trim(),n.value.trim())}
-function join(pin,name,id){s.emit('player:join',{pin,name,id},r=>{
+let sel=+(localStorage.getItem('buzzin.av')??Math.floor(Math.random()*8));
+function form(pin='',name='',err=''){A.innerHTML=`<div class="wrap stack"><div class="logo">buzzin<i></i></div><div class="card stack"><label class="mut" for="p">Game PIN</label><input id="p" class="pinin" inputmode="numeric" maxlength="6" value="${esc(pin)}" placeholder="000000"><label class="mut" for="n">Nickname</label><input id="n" maxlength="16" value="${esc(name)}" placeholder="What should we call you?"><span class="mut">Pick your character</span><div class="avs">${AV.map((_,i)=>`<button type="button" class="avb ${i===sel?'on':''}" data-i="${i}" aria-label="Character ${i+1}" aria-pressed="${i===sel}">${av(i)}</button>`).join('')}</div><p class="err" role="alert">${esc(err)}</p><button id="go">Join game</button></div><p class="mut" style="text-align:center">Questions appear on the main screen. Pick your answer here.</p></div>`;
+ A.querySelectorAll('.avb').forEach(b=>b.onclick=()=>{sel=+b.dataset.i;localStorage.setItem('buzzin.av',sel);A.querySelectorAll('.avb').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',x===b)})});
+ document.getElementById('go').onclick=()=>join(p.value.trim(),n.value.trim(),null,sel)}
+function join(pin,name,id,a){s.emit('player:join',{pin,name,id,av:a},r=>{
  if(r.err){if(id){me=null;localStorage.removeItem('buzzin.me');return form(pin,name,'This game has ended.')}return form(pin,name,r.err)}
- me={pin,name:r.name,id:r.id};localStorage.setItem('buzzin.me',JSON.stringify(me))})}
+ me={pin,name:r.name,id:r.id,av:r.av};localStorage.setItem('buzzin.me',JSON.stringify(me))})}
 function cu(n){const e=document.getElementById('pts');if(!n)return;const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/900);e.textContent='+'+Math.round(n*(1-(1-p)**3));if(p<1)requestAnimationFrame(f)})(t0)}
-s.on('connect',()=>me?join(me.pin,me.name,me.id):form(qp));
+s.on('connect',()=>me?join(me.pin,me.name,me.id,me.av):form(qp));
 const full=(c,h)=>A.innerHTML=`<div class="full ${c}">${h}</div>`;
-let rk='';s.on('s',v=>{const k=v.phase+v.q+v.mine+(v.me?1:0);if(k===rk)return;rk=k;
- if(v.phase==='lobby')return full('idle',`<div class="logo">buzzin<i></i></div><h1>You're in</h1><p>${esc(me?.name)}, watch the main screen for the game to start.</p>`);
+let rk='';
+s.on('s',v=>{const k=v.phase+v.q+v.mine+(v.me?1:0);if(k===rk)return;rk=k;
+ if(v.phase==='lobby')return full('idle',`${av(me?.av,'av xl')}<h1>You're in</h1><p>${esc(me?.name)}, watch the main screen for the game to start.</p>`);
  if(v.phase==='question'){
   if(v.mine!=null)return A.innerHTML=`<div class="full idle"><div class="tile c${v.mine}" style="font-size:0;justify-content:center;width:140px;height:140px">${SH[v.mine]}</div><h1>Answer locked</h1><p>Waiting for the others…</p></div>`;
   A.innerHTML=`<div class="wrap in" style="padding:14px"><div class="row2" style="justify-content:space-between"><b>Question ${v.q+1} of ${v.total}</b><span class="mut">${esc(me?.name)}</span></div><span class="bar" style="margin-top:8px"><u style="animation-duration:${v.left}ms"></u></span><div class="pgrid n${v.options}">${Array.from({length:v.options},(_,i)=>`<button class="tile c${i}" data-i="${i}" aria-label="Answer ${'ABCD'[i]}">${SH[i]}<b>${'ABCD'[i]}</b></button>`).join('')}</div></div>`;
   A.querySelectorAll('.tile').forEach(b=>b.onclick=()=>s.emit('player:answer',+b.dataset.i));return}
  if(v.phase==='reveal'&&v.me){const m=v.me;full(m.ok?'ok':'no',`<h1>${m.ok?'Correct':m.picked==null?"Time's up":'Not quite'}</h1><div class="pin" id="pts" style="font-size:96px;letter-spacing:0">+0</div>${m.streak>1?`<p>${m.streak} correct in a row</p>`:''}<p>You're #${m.rank} with ${m.score} points</p>`);cu(m.pts);return}
- if(v.phase==='final'&&v.me){return full('idle',`<p>Game over</p><h1>#${v.me.rank}</h1><p>${v.me.score} points</p><button class="alt" onclick="localStorage.removeItem('buzzin.me');location='/'">Join another game</button>`)}
+ if(v.phase==='final'&&v.me){A.innerHTML=`<div class="wrap" style="padding-top:28px"><div class="card row2" style="gap:14px">${av(v.me.av,'av lg').replace('lg','')}<div><b style="font-size:22px">You finished #${v.me.rank}</b><br><span class="mut">${v.me.score} points</span></div></div><div class="card">${board(v)}</div><button class="alt" style="width:100%" onclick="localStorage.removeItem('buzzin.me');location='/'">Join another game</button></div>`}
 });
 </script></body></html>
