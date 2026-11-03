@@ -10,15 +10,16 @@ function form(pin='',name='',err=''){A.innerHTML=`<div class="wrap stack"><div c
 function join(pin,name,id){s.emit('player:join',{pin,name,id},r=>{
  if(r.err){if(id){me=null;localStorage.removeItem('buzzin.me');return form(pin,name,'This game has ended.')}return form(pin,name,r.err)}
  me={pin,name:r.name,id:r.id};localStorage.setItem('buzzin.me',JSON.stringify(me))})}
+function cu(n){const e=document.getElementById('pts');if(!n)return;const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/900);e.textContent='+'+Math.round(n*(1-(1-p)**3));if(p<1)requestAnimationFrame(f)})(t0)}
 s.on('connect',()=>me?join(me.pin,me.name,me.id):form(qp));
 const full=(c,h)=>A.innerHTML=`<div class="full ${c}">${h}</div>`;
-s.on('s',v=>{
+let rk='';s.on('s',v=>{const k=v.phase+v.q+v.mine+(v.me?1:0);if(k===rk)return;rk=k;
  if(v.phase==='lobby')return full('idle',`<div class="logo">buzzin<i></i></div><h1>You're in</h1><p>${esc(me?.name)}, watch the main screen for the game to start.</p>`);
  if(v.phase==='question'){
   if(v.mine!=null)return A.innerHTML=`<div class="full idle"><div class="tile c${v.mine}" style="font-size:0;justify-content:center;width:140px;height:140px">${SH[v.mine]}</div><h1>Answer locked</h1><p>Waiting for the others…</p></div>`;
-  A.innerHTML=`<div class="wrap" style="padding:14px"><div class="row2" style="justify-content:space-between"><b>Question ${v.q+1} of ${v.total}</b><span class="mut">${esc(me?.name)}</span></div><span class="bar" style="margin-top:8px"><u style="animation-duration:${v.left}ms"></u></span><div class="pgrid n${v.options}">${Array.from({length:v.options},(_,i)=>`<button class="tile c${i}" data-i="${i}" aria-label="Answer ${'ABCD'[i]}">${SH[i]}<b>${'ABCD'[i]}</b></button>`).join('')}</div></div>`;
+  A.innerHTML=`<div class="wrap in" style="padding:14px"><div class="row2" style="justify-content:space-between"><b>Question ${v.q+1} of ${v.total}</b><span class="mut">${esc(me?.name)}</span></div><span class="bar" style="margin-top:8px"><u style="animation-duration:${v.left}ms"></u></span><div class="pgrid n${v.options}">${Array.from({length:v.options},(_,i)=>`<button class="tile c${i}" data-i="${i}" aria-label="Answer ${'ABCD'[i]}">${SH[i]}<b>${'ABCD'[i]}</b></button>`).join('')}</div></div>`;
   A.querySelectorAll('.tile').forEach(b=>b.onclick=()=>s.emit('player:answer',+b.dataset.i));return}
- if(v.phase==='reveal'&&v.me){const m=v.me;return full(m.ok?'ok':'no',`<h1>${m.ok?'Correct':m.picked==null?"Time's up":'Not quite'}</h1><div class="pin" style="font-size:64px;letter-spacing:0">+${m.pts}</div>${m.streak>1?`<p>${m.streak} correct in a row</p>`:''}<p>You're #${m.rank} with ${m.score} points</p>`)}
+ if(v.phase==='reveal'&&v.me){const m=v.me;full(m.ok?'ok':'no',`<h1>${m.ok?'Correct':m.picked==null?"Time's up":'Not quite'}</h1><div class="pin" id="pts" style="font-size:96px;letter-spacing:0">+0</div>${m.streak>1?`<p>${m.streak} correct in a row</p>`:''}<p>You're #${m.rank} with ${m.score} points</p>`);cu(m.pts);return}
  if(v.phase==='final'&&v.me){return full('idle',`<p>Game over</p><h1>#${v.me.rank}</h1><p>${v.me.score} points</p><button class="alt" onclick="localStorage.removeItem('buzzin.me');location='/'">Join another game</button>`)}
 });
 </script></body></html>
