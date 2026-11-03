@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@500;700&display=swap');
+:root{--ink:#1A1C3A;--bg:#F1F3FA;--mut:#6A6E8F;--line:#DDE1F0;--c0:#E8453C;--c1:#2E5BFF;--c2:#F5B21B;--c3:#17A673}
+*{box-sizing:border-box;margin:0}
+body{font:500 17px/1.4 Figtree,system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100dvh}
+h1,h2,.pin,.logo,button,.pinin{font-family:'Bricolage Grotesque',system-ui,sans-serif}
+.logo{font-weight:800;font-size:30px;letter-spacing:-.03em}
+.logo i{display:inline-block;width:.3em;height:.3em;border-radius:50%;background:var(--c2);margin-left:.06em}
+.wrap{max-width:600px;margin:0 auto;padding:24px 20px 60px}
+.wide{max-width:1100px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;margin-bottom:16px}
+input,select{font:inherit;width:100%;padding:13px 15px;border:2px solid var(--line);border-radius:14px;background:#fff;color:inherit}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--c1);outline-offset:2px}
+button{font-weight:800;font-size:18px;padding:14px 24px;border:0;border-radius:14px;background:var(--ink);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--ink);border:2px solid var(--line)}
+button:disabled{opacity:.4;cursor:default}
+.pin{font-weight:800;font-size:clamp(64px,15vw,150px);letter-spacing:.06em;line-height:1;font-variant-numeric:tabular-nums}
+.pinin{font-size:42px;text-align:center;letter-spacing:.18em;font-weight:800}
+.mut{color:var(--mut)} .err{color:var(--c0);font-weight:700;min-height:1.4em}
+.stack>*+*{margin-top:14px} .row2{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:18px;color:#fff;font-weight:800;min-height:84px;border:0;font-size:22px;text-align:left}
+.tile svg{width:42px;height:42px;fill:#fff;flex:none}
+.tile b{font:800 28px 'Bricolage Grotesque'}
+.c0{background:var(--c0)}.c1{background:var(--c1)}.c2{background:var(--c2);color:var(--ink)}.c3{background:var(--c3)}
+.c2 svg{fill:var(--ink)}
+.dim{opacity:.28}
+.bar{display:block;height:12px;background:var(--line);border-radius:9px;overflow:hidden}
+.bar u{display:block;height:100%;background:var(--ink);transform-origin:left;animation:shr linear forwards}
+@keyframes shr{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips span{background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-weight:700}
+.row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row b{flex:1}.row em{font-style:normal;font-weight:800}
+.dist{display:flex;align-items:flex-end;gap:12px;height:200px;margin:34px 0 14px}
+.dist div{flex:1;border-radius:12px 12px 0 0;position:relative}
+.dist span{position:absolute;top:-30px;left:0;right:0;text-align:center;font-weight:800;font-size:22px}
+.pod{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-bottom:20px}
+.pod div{flex:1;max-width:220px;text-align:center;background:var(--ink);color:#fff;border-radius:16px 16px 0 0;padding:14px 8px;font-weight:800}
+.pod small{display:block;font-weight:500;opacity:.8}
+.display .wrap{padding-top:40px;font-size:24px}.display .tile{min-height:130px;font-size:34px}
+.display .tile svg{width:60px;height:60px}.display h2{font-size:3em!important}
+.full{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px;color:#fff;gap:10px}
+.full h1{font-size:clamp(40px,12vw,72px)}.ok{background:var(--c3)}.no{background:var(--c0)}.idle{background:var(--ink)}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;height:calc(100dvh - 96px);margin-top:14px}
+.pgrid.n2{grid-template-columns:1fr}.pgrid.n3 .tile:last-child{grid-column:span 2}
+.pgrid .tile{flex-direction:column;justify-content:center;font-size:0}
+.pgrid svg{width:68px;height:68px}.pgrid b{font-size:46px}
+.q{border:2px solid var(--line);border-radius:16px;padding:16px}
+.q .tile{min-height:56px;padding:10px 14px;font-size:16px;cursor:pointer}.q .tile svg{width:26px;height:26px}
+.q .tile b{font-size:20px}

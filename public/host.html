@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buzzin: host</title><link rel="stylesheet" href="/style.css"></head><body>
+<div class="wrap" id="app"></div>
+<script src="/socket.io/socket.io.js"></script><script src="/common.js"></script><script>
+const s=io();let cfg={},pw='';
+let quiz=JSON.parse(localStorage.getItem('buzzin.draft')||'null')||{title:'',questions:[]};
+const blank=()=>({text:'',options:['','','',''],correct:0,time:20,double:false});
+if(!quiz.questions.length)quiz.questions.push(blank());
+const save=()=>localStorage.setItem('buzzin.draft',JSON.stringify(quiz));
+const app=document.getElementById('app');
+function editor(err=''){
+ app.innerHTML=`<div class="stack"><div class="logo">buzzin<i></i> <span class="mut" style="font-size:18px">host</span></div>
+ <div class="card stack"><label class="mut" for="t">Quiz title</label><input id="t" value="${esc(quiz.title)}" placeholder="Week 9 vocabulary check"></div>
+ ${quiz.questions.map((q,k)=>`<div class="q stack card" data-k="${k}"><div class="row2" style="justify-content:space-between"><b>Question ${k+1}</b><button class="alt rm" ${quiz.questions.length<2?'disabled':''}>Remove</button></div>
+ <input class="tx" value="${esc(q.text)}" placeholder="Question text (optional, if it is on paper or another screen)">
+ <div class="row2"><select class="n" aria-label="Answers">${[2,3,4].map(n=>`<option value="${n}" ${q.options.length==n?'selected':''}>${n} answers</option>`).join('')}</select>
+ <select class="tm" aria-label="Time">${[10,20,30,60,90].map(n=>`<option value="${n}" ${q.time==n?'selected':''}>${n} seconds</option>`).join('')}</select>
+ <label class="row2"><input class="dbl" type="checkbox" style="width:auto" ${q.double?'checked':''}> Double points</label></div>
+ <p class="mut">Tap the correct answer</p><div class="grid">${q.options.map((_,i)=>`<button class="tile c${i} pick ${q.correct===i?'':'dim'}" data-i="${i}">${SH[i]}<b>${'ABCD'[i]}</b>${q.correct===i?'Correct':''}</button>`).join('')}</div></div>`).join('')}
+ <div class="row2"><button class="alt" id="add">Add question</button>${cfg.needPassword?'<input id="pw" type="password" placeholder="Host password" style="max-width:220px">':''}<button id="go" style="margin-left:auto">Create game</button></div><p class="err" role="alert">${esc(err)}</p></div>`;
+ const $=x=>app.querySelector(x);
+ $('#t').oninput=e=>{quiz.title=e.target.value;save()};
+ app.querySelectorAll('.q').forEach(el=>{const q=quiz.questions[+el.dataset.k];
+  el.querySelector('.tx').oninput=e=>{q.text=e.target.value;save()};
+  el.querySelector('.n').onchange=e=>{q.options=Array(+e.target.value).fill('');q.correct=Math.min(q.correct,q.options.length-1);save();editor()};
+  el.querySelector('.tm').onchange=e=>{q.time=+e.target.value;save()};
+  el.querySelector('.dbl').onchange=e=>{q.double=e.target.checked;save()};
+  el.querySelector('.rm').onclick=()=>{quiz.questions.splice(+el.dataset.k,1);save();editor()};
+  el.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{q.correct=+b.dataset.i;save();editor()})});
+ $('#add').onclick=()=>{quiz.questions.push(blank());save();editor()};
+ $('#go').onclick=()=>s.emit('host:create',{quiz,pw:$('#pw')?.value},r=>{if(r.err)return editor(r.err);
+  sessionStorage.setItem('buzzin.host',JSON.stringify(r));control(r.pin)});
+}
+let last=null;
+function control(pin){
+ window.hostPin=pin;
+ s.on('s',v=>{last=v;const lastQ=v.q+1>=v.total;
+  const lbl={lobby:'Start game',question:'Show answer',reveal:lastQ?'Show final results':'Next question',final:'Create another game'}[v.phase];
+  app.innerHTML=`<div class="stack"><div class="row2" style="justify-content:space-between"><div class="logo">buzzin<i></i></div><a href="/display/${pin}" target="_blank" rel="noopener"><button class="alt">Open main screen</button></a></div>
+  <div class="card">${board(v)}</div>
+  <div class="row2" style="justify-content:space-between"><span class="mut">${esc(v.title)}</span><button id="nx" ${v.phase==='lobby'&&!v.count?'disabled':''}>${lbl}</button></div></div>`;
+  document.getElementById('nx').onclick=()=>v.phase==='final'?(sessionStorage.removeItem('buzzin.host'),location.reload()):s.emit('host:next')});
+}
+fetch('/api/config').then(r=>r.json()).then(c=>{cfg=c;
+ const h=JSON.parse(sessionStorage.getItem('buzzin.host')||'null');
+ if(h)s.emit('host:resume',h,r=>r.err?(sessionStorage.removeItem('buzzin.host'),editor()):control(h.pin));else editor()});
+s.on('connect',()=>{const h=JSON.parse(sessionStorage.getItem('buzzin.host')||'null');if(h&&window.hostPin)s.emit('host:resume',h,()=>{})});
+</script></body></html>

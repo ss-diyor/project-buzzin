@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buzzin: display</title><link rel="stylesheet" href="/style.css"></head><body class="display">
+<div class="wrap wide" id="app"></div>
+<script src="/socket.io/socket.io.js"></script><script src="/common.js"></script><script>
+const s=io(),pin=location.pathname.split('/').pop();
+s.on('connect',()=>s.emit('display:join',pin,r=>{if(r.err)app.innerHTML='<h2>Game not found</h2>'}));
+s.on('s',v=>app.innerHTML=board(v));
+</script></body></html>
